@@ -1,4 +1,5 @@
 animal_predict_ui# 🐾 Animal Predic
+
 A Next.js application that predicts animal species from images using AI, with Google OAuth authentication and Kubernetes deployment support.
 
 Features
