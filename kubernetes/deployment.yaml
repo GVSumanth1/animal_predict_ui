@@ -1,0 +1,94 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: animal-predic
+  namespace: default
+  labels:
+    app: animal-predic
+    version: v1
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: animal-predic
+  template:
+    metadata:
+      labels:
+        app: animal-predic
+        version: v1
+    spec:
+      containers:
+      - name: animal-predic
+        image: animal-predic:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 3000
+          name: http
+          protocol: TCP
+        env:
+        - name: NODE_ENV
+          value: "production"
+        - name: NEXT_PUBLIC_GOOGLE_CLIENT_ID
+          valueFrom:
+            configMapKeyRef:
+              name: animal-predic-config
+              key: google_client_id
+        - name: GOOGLE_CLIENT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: animal-predic-secrets
+              key: google_client_secret
+        - name: NEXT_PUBLIC_PREDICTION_SERVICE_URL
+          value: "http://prediction-service:5000"
+        - name: PREDICTION_SERVICE_URL
+          value: "http://prediction-service:5000"
+        - name: NEXT_PUBLIC_APP_URL
+          valueFrom:
+            configMapKeyRef:
+              name: animal-predic-config
+              key: app_url
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "250m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 3000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 3000
+          initialDelaySeconds: 10
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 3
+        securityContext:
+          runAsNonRoot: true
+          runAsUser: 1000
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: false
+          capabilities:
+            drop:
+            - ALL
+      securityContext:
+        fsGroup: 1000
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                  - animal-predic
+              topologyKey: kubernetes.io/hostname

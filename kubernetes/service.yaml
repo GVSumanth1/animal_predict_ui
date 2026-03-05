@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: animal-predic
+  namespace: default
+  labels:
+    app: animal-predic
+spec:
+  type: LoadBalancer
+  selector:
+    app: animal-predic
+  ports:
+  - name: http
+    port: 80
+    targetPort: 3000
+    protocol: TCP
+  sessionAffinity: ClientIP
+  sessionAffinityConfig:
+    clientIP:
+      timeoutSeconds: 10800
