@@ -1,30 +1,36 @@
 'use client'
 
-import { GoogleLogin } from '@react-oauth/google'
-import { jwtDecode } from 'jwt-decode'
+import { signIn } from 'next-auth/react'
+import { useState } from 'react'
 
 interface GoogleLoginProps {
     onSuccess: (userData: any) => void
     onError: (error: any) => void
 }
-
 export default function GoogleLoginComponent({
     onSuccess,
     onError,
 }: GoogleLoginProps) {
-    const handleSuccess = (credentialResponse: any) => {
+    const [isLoading, setIsLoading] = useState(false)
+
+    const handleGoogleSignIn = async () => {
+        setIsLoading(true)
         try {
-            const decoded = jwtDecode<any>(credentialResponse.credential)
-            const userData = {
-                id: decoded.sub,
-                name: decoded.name,
-                email: decoded.email,
-                picture: decoded.picture,
-                credential: credentialResponse.credential,
+            const result = await signIn('google', {
+                redirect: false,
+                callbackUrl: '/',
+            })
+
+            if (result?.error) {
+                onError(result.error)
+            } else if (result?.ok) {
+                // Session will be automatically managed by NextAuth
+                onSuccess({})
             }
-            onSuccess(userData)
         } catch (error) {
             onError(error)
+        } finally {
+            setIsLoading(false)
         }
     }
 
@@ -32,13 +38,13 @@ export default function GoogleLoginComponent({
         <div className="login-container">
             <div className="login-box">
                 <h2>Sign in to continue</h2>
-                <GoogleLogin
-                    onSuccess={handleSuccess}
-                    onError={() => onError('Login failed')}
-                    theme="outline"
-                    size="large"
-                />
+                <button
+                    onClick={handleGoogleSignIn}
+                    disabled={isLoading}
+                    className="google-signin-button"
+                >
+                    {isLoading ? 'Signing in...' : '🔐 Sign in with Google'}
+                </button>
             </div>
         </div>
     )
-}

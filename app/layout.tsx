@@ -1,10 +1,10 @@
-import { GoogleOAuthProvider } from '@react-oauth/google'
+import ClientSessionProvider from '@/components/ClientSessionProvider'
 import type { Metadata } from 'next'
 import '../styles/globals.css'
 
 export const metadata: Metadata = {
-    title: 'Animal Predic - Image Classification',
-    description: 'Predict animal species from images using AI',
+    title: 'Animal Predictor',
+    description: 'Identify animals from images using AI',
 }
 
 export default function RootLayout({
@@ -12,14 +12,12 @@ export default function RootLayout({
 }: {
     children: React.ReactNode
 }) {
-    const googleClientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || ''
-
     return (
         <html lang="en">
             <body>
-                <GoogleOAuthProvider clientId={googleClientId}>
+                <ClientSessionProvider>
                     {children}
-                </GoogleOAuthProvider>
+                </ClientSessionProvider>
             </body>
         </html>
     )

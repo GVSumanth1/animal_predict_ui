@@ -1,19 +1,15 @@
 'use client'
-
 import { useRef, useState } from 'react'
-
 interface ImageUploaderProps {
     onUpload: (file: File) => void
     isLoading: boolean
 }
-
 export default function ImageUploader({
     onUpload,
     isLoading,
 }: ImageUploaderProps) {
     const [preview, setPreview] = useState<string | null>(null)
     const fileInputRef = useRef<HTMLInputElement>(null)
-
     const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0]
         if (file) {
@@ -22,19 +18,16 @@ export default function ImageUploader({
                 alert('Please select a valid image file')
                 return
             }
-
             // Create preview
             const reader = new FileReader()
             reader.onload = (e) => {
                 setPreview(e.target?.result as string)
             }
             reader.readAsDataURL(file)
-
             // Upload
             onUpload(file)
         }
     }
-
     const handleDrop = (event: React.DragEvent<HTMLDivElement>) => {
         event.preventDefault()
         const file = event.dataTransfer.files?.[0]
@@ -46,6 +39,11 @@ export default function ImageUploader({
             reader.readAsDataURL(file)
             onUpload(file)
         }
+    }
+
+    const handleSelectNewImage = () => {
+        setPreview(null)
+        fileInputRef.current?.click()
     }
 
     return (
@@ -60,14 +58,12 @@ export default function ImageUploader({
                         <img src={preview} alt="Preview" className="preview-image" />
                     </div>
                 )}
-
                 {!preview && (
                     <div className="upload-placeholder">
                         <p>📸 Drag and drop an image here</p>
                         <p>or click to select</p>
                     </div>
                 )}
-
                 <input
                     ref={fileInputRef}
                     type="file"
@@ -79,8 +75,8 @@ export default function ImageUploader({
             </div>
 
             <button
-                onClick={() => fileInputRef.current?.click()}
-                disabled={isLoading || !!preview}
+                onClick={handleSelectNewImage}
+                disabled={isLoading}
                 className="upload-button"
             >
                 {isLoading ? 'Processing...' : 'Select Image'}

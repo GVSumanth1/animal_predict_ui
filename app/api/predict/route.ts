@@ -1,47 +1,71 @@
 import axios from 'axios'
+import FormData from 'form-data'
+import { getServerSession } from 'next-auth'
 import { NextRequest, NextResponse } from 'next/server'
+import { authOptions } from '../auth/[...nextauth]/auth-options'
 
 export async function POST(request: NextRequest) {
     try {
-        const formData = await request.formData()
-        const imageFile = formData.get('image') as File
-        const userId = formData.get('user_id') as string
+        const session = await getServerSession(authOptions)
 
-        if (!imageFile) {
+        if (!session || !session.user) {
             return NextResponse.json(
-                { error: 'No image provided' },
-                { status: 400 }
+                { error: 'Unauthorized' },
+                { status: 401 }
             )
         }
 
-        // Convert file to buffer
-        const buffer = Buffer.from(await imageFile.arrayBuffer())
+        console.log('--- Incoming predict request ---')
 
-        // Get prediction service URL from environment
-        const predictionServiceUrl =
-            process.env.PREDICTION_SERVICE_URL || 'http://localhost:5000'
+        const incomingForm = await request.formData()
+        const imageFile = incomingForm.get('image') as File | null
 
-        // Send to prediction service
-        const formDataToSend = new FormData()
-        formDataToSend.append('image', imageFile)
-        formDataToSend.append('user_id', userId)
+        if (!imageFile) {
+            return NextResponse.json({ error: 'No image provided' }, { status: 400 })
+        }
 
-        const predictionResponse = await axios.post(
+        // Convert File -> Buffer
+        const arrayBuffer = await imageFile.arrayBuffer()
+        const buffer = Buffer.from(arrayBuffer)
+
+        // Build multipart form
+        const outgoingForm = new FormData()
+        outgoingForm.append('file', buffer, {
+            filename: imageFile.name || 'image.jpg',
+            contentType: imageFile.type || 'image/jpeg',
+            knownLength: buffer.length,
+        })
+
+        // Forward Google user info
+        outgoingForm.append('user_email', session.user.email!)
+        outgoingForm.append('user_name', session.user.name || '')
+
+        let predictionServiceUrl =
+            process.env.PREDICTION_SERVICE_URL || 'http://localhost:8080'
+
+        if (!/^https?:\/\//i.test(predictionServiceUrl)) {
+            predictionServiceUrl = `http://${predictionServiceUrl}`
+        }
+
+        predictionServiceUrl = predictionServiceUrl.replace(/\/+$/, '')
+
+        const response = await axios.post(
             `${predictionServiceUrl}/predict`,
-            formDataToSend,
+            outgoingForm,
             {
                 headers: {
-                    ...formDataToSend.getHeaders?.(),
+                    ...outgoingForm.getHeaders(),
                 },
+                maxBodyLength: Infinity,
+                maxContentLength: Infinity,
             }
         )
 
-        return NextResponse.json(predictionResponse.data)
-    } catch (error) {
-        console.error('Prediction error:', error)
+        console.log('✅ Prediction response received')
+
+        return NextResponse.json(response.data)
+    } catch (error: any) {
+        console.error('❌ Prediction error')
         return NextResponse.json(
             { error: 'Failed to process image' },
             { status: 500 }
-        )
-    }
-}

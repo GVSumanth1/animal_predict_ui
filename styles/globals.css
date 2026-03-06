@@ -241,6 +241,44 @@ main.container {
     animation: pulse 1.5s ease-in-out infinite;
 }
 
+.logout-button,
+.new-prediction-button {
+    padding: 10px 20px;
+    margin-top: 20px;
+    background-color: #ff6b6b;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background-color 0.3s;
+}
+
+.logout-button:hover,
+.new-prediction-button:hover {
+    background-color: #ff5252;
+}
+
+.google-signin-button {
+    padding: 12px 24px;
+    font-size: 16px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    cursor: pointer;
+    background-color: #fff;
+    transition: all 0.3s;
+}
+
+.google-signin-button:hover {
+    background-color: #f5f5f5;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.uploaded-image-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
 @keyframes pulse {
 
     0%,
