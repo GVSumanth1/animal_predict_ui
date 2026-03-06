@@ -199,4 +199,7 @@ kubectl describe pod <pod-name>
 kubectl logs <pod-name>
 # Debug connection
 kubectl exec -it <pod-name> -- sh
+<<<<<<< HEAD
 ```
+=======
+>>>>>>> 7fa22f312ec33e59b1955f5853adce7b110e0497
