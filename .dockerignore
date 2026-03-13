@@ -1,0 +1,15 @@
+node_modules
+.git
+.gitignore
+.next
+.env.local
+.env.example
+README.md
+LICENSE
+npm-debug.log
+.DS_Store
+.vscode
+.idea
+public/.next
+dist
+build

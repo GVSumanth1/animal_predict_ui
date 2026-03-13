@@ -1,0 +1,97 @@
+name: Deploy to GKE
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - 'v*.*.*'
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Deployment environment'
+        required: true
+        default: 'staging'
+        type: choice
+        options:
+          - staging
+          - production
+
+env:
+  GKE_CLUSTER: ${{ secrets.GKE_CLUSTER_NAME }}
+  GKE_ZONE: ${{ secrets.GKE_ZONE }}
+  DEPLOYMENT_NAME: animal-predict
+  IMAGE: ${{ secrets.DOCKER_USERNAME }}/animal-predict
+  REGISTRY: docker.io
+
+jobs:
+  setup-build-deploy:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v1
+        with:
+          service_account_key: ${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}
+          project_id: ${{ secrets.GCP_PROJECT_ID }}
+          export_default_credentials: true
+
+      - name: Configure Docker for GCR
+        run: |
+          gcloud auth configure-docker
+      - name: Get GKE credentials
+        run: |
+          gcloud container clusters get-credentials $GKE_CLUSTER --zone $GKE_ZONE
+      - name: Extract image tag
+        id: image-tag
+        run: |
+          if [[ "${{ github.ref }}" == refs/tags/* ]]; then
+            TAG=${GITHUB_REF#refs/tags/}
+          else
+            TAG=${{ github.sha }}
+          fi
+          echo "tag=$TAG" >> $GITHUB_OUTPUT
+          echo "full_image=${{ env.IMAGE }}:$TAG" >> $GITHUB_OUTPUT
+      - name: Deploy to GKE
+        run: |
+          # Replace image tag in deployment manifest
+          sed -i "s|DOCKER_IMAGE|${{ steps.image-tag.outputs.full_image }}|g" k8s/deployment.yaml
+          
+          # Apply Kubernetes manifests
+          kubectl apply -f k8s/namespace.yaml
+          kubectl apply -f k8s/configmap.yaml
+          
+          # Update secrets from GitHub Actions secrets
+          kubectl create secret generic animal-predict-secret \
+            --from-literal=GOOGLE_CLIENT_ID='${{ secrets.GOOGLE_CLIENT_ID }}' \
+            --from-literal=GOOGLE_CLIENT_SECRET='${{ secrets.GOOGLE_CLIENT_SECRET }}' \
+            --from-literal=NEXTAUTH_SECRET='${{ secrets.NEXTAUTH_SECRET }}' \
+            -n animal-predict \
+            --dry-run=client -o yaml | kubectl apply -f -
+          
+          kubectl apply -f k8s/deployment.yaml
+          kubectl apply -f k8s/service.yaml
+          kubectl apply -f k8s/hpa.yaml
+          
+          # Wait for rollout
+          kubectl rollout status deployment/$DEPLOYMENT_NAME -n animal-predict --timeout=5m
+      - name: Verify deployment
+        run: |
+          kubectl get deployments -n animal-predict
+          kubectl get services -n animal-predict
+          kubectl get pods -n animal-predict
+      - name: Post deployment info
+        if: success()
+        run: |
+          echo "✅ Deployment successful"
+          echo "Cluster: $GKE_CLUSTER"
+          echo "Zone: $GKE_ZONE"
+          echo "Image: ${{ steps.image-tag.outputs.full_image }}"
+          echo "Namespace: animal-predict"

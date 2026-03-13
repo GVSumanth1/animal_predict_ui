@@ -1,8 +1,0 @@
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: animal-predic-config
-  namespace: default
-data:
-  google_client_id: "your-google-client-id-here"
-  app_url: "https://your-domain.com"
