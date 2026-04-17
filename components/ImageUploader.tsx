@@ -1,7 +1,8 @@
 'use client'
 import { useRef, useState } from 'react'
+
 interface ImageUploaderProps {
-    onUpload: (file: File) => void
+    onUpload: (_file: File) => void
     isLoading: boolean
 }
 export default function ImageUploader({

@@ -4,8 +4,8 @@ import { signIn } from 'next-auth/react'
 import { useState } from 'react'
 
 interface GoogleLoginProps {
-    onSuccess: (userData: any) => void
-    onError: (error: any) => void
+    onSuccess: (_userData: any) => void
+    onError: (_error: any) => void
 }
 export default function GoogleLoginComponent({
     onSuccess,
