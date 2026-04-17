@@ -24,7 +24,7 @@ export const authOptions: NextAuthOptions = {
                 token.accessToken = account.access_token
                 token.email = profile.email
                 token.name = profile.name
-                token.picture = profile.picture
+                token.picture = (profile as any).picture
             }
             return token
         },
