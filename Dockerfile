@@ -5,7 +5,7 @@ WORKDIR /app
 
 COPY package*.json ./
 
-RUN npm ci
+RUN npm ci --legacy-peer-deps
 
 COPY . .
 
@@ -22,7 +22,7 @@ RUN apk add --no-cache dumb-init
 
 COPY package*.json ./
 
-RUN npm ci --only=production
+RUN npm ci --legacy-peer-deps --only=production
 
 COPY --from=builder /app/.next ./.next
 COPY --from=builder /app/public ./public
