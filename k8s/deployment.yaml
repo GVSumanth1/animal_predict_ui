@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: animal-predict
+  name: animal-predict-ui-deployment
   namespace: animal-app-namespace
   labels:
     app: animal-predict
@@ -15,6 +15,7 @@ spec:
     rollingUpdate:
       maxSurge: 1
       maxUnavailable: 0
+
   template:
     metadata:
       labels:
@@ -22,11 +23,13 @@ spec:
       annotations:
         prometheus.io/scrape: "true"
         prometheus.io/port: "3000"
+
     spec:
       containers:
       - name: animal-predict
-        image: DOCKER_IMAGE  # Replaced by CI/CD pipeline
+        image: DOCKER_IMAGE
         imagePullPolicy: IfNotPresent
+
         ports:
         - containerPort: 3000
           name: http
@@ -37,26 +40,31 @@ spec:
             configMapKeyRef:
               name: animal-predict-config
               key: NODE_ENV
+
         - name: NEXTAUTH_URL
           valueFrom:
             configMapKeyRef:
               name: animal-predict-config
               key: NEXTAUTH_URL
+
         - name: PREDICTION_SERVICE_URL
           valueFrom:
             configMapKeyRef:
               name: animal-predict-config
               key: PREDICTION_SERVICE_URL
+
         - name: GOOGLE_CLIENT_ID
           valueFrom:
             secretKeyRef:
               name: animal-predict-secret
               key: GOOGLE_CLIENT_ID
+
         - name: GOOGLE_CLIENT_SECRET
           valueFrom:
             secretKeyRef:
               name: animal-predict-secret
               key: GOOGLE_CLIENT_SECRET
+
         - name: NEXTAUTH_SECRET
           valueFrom:
             secretKeyRef:
@@ -101,13 +109,9 @@ spec:
         volumeMounts:
         - name: tmp
           mountPath: /tmp
-        - name: cache
-          mountPath: /app/.next
 
       volumes:
       - name: tmp
-        emptyDir: {}
-      - name: cache
         emptyDir: {}
 
       affinity:
