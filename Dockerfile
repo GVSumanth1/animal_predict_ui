@@ -22,7 +22,7 @@ RUN apk add --no-cache dumb-init
 
 COPY package*.json ./
 
-RUN npm ci --legacy-peer-deps --only=production
+RUN npm ci --legacy-peer-deps
 
 COPY --from=builder /app/.next ./.next
 COPY --from=builder /app/next.config.js ./
