@@ -164,7 +164,7 @@ GKE_DEPLOYMENT.md         → Full deployment guide
 6. **Monitor deployment**:
    ```bash
    gcloud container clusters get-credentials animal-predict-cluster --zone us-central1-a
-   kubectl rollout status deployment/animal-predict -n animal-predict --watch
+   kubectl rollout status deployment/animal-predict -n animal-app-namespace --watch
    ```
 
 ---

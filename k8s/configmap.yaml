@@ -2,8 +2,8 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: animal-predict-config
-  namespace: animal-predict
+  namespace: animal-app-namespace
 data:
   NODE_ENV: "production"
-  NEXTAUTH_URL: "https://your-domain.com"  # Update with your domain
-  PREDICTION_SERVICE_URL: "http://prediction-service:8080"  # Update with your service
+  NEXTAUTH_URL: "__NEXTAUTH_URL__"
+  PREDICTION_SERVICE_URL: "__PREDICTION_SERVICE_URL__"

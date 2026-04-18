@@ -214,77 +214,75 @@ NODE_ENV=production
 
 ```bash
 # Watch deployment status
-kubectl rollout status deployment/animal-predict -n animal-predict --watch
+kubectl rollout status deployment/animal-predict -n animal-app-namespace --watch
 
 # View pod logs
-kubectl logs deployment/animal-predict -n animal-predict
+kubectl logs deployment/animal-predict -n animal-app-namespace
 
 # Follow logs in real-time
-kubectl logs -f deployment/animal-predict -n animal-predict
+kubectl logs -f deployment/animal-predict -n animal-app-namespace
 
 # View resource usage
-kubectl top pods -n animal-predict
+kubectl top pods -n animal-app-namespace
 
 # Check pod events
-kubectl describe pod animal-predict-xxxxx -n animal-predict
+kubectl describe pod animal-predict-xxxxx -n animal-app-namespace
 ```
 
 ## Scaling
 
 ```bash
 # Manual scaling
-kubectl scale deployment animal-predict --replicas=5 -n animal-predict
+kubectl scale deployment animal-predict --replicas=5 -n animal-app-namespace
 
 # View HPA status
-kubectl get hpa -n animal-predict -w
+kubectl get hpa -n animal-app-namespace -w
 
 # Check HPA metrics
-kubectl describe hpa animal-predict-hpa -n animal-predict
+kubectl describe hpa animal-predict-hpa -n animal-app-namespace
 ```
 
 ## Troubleshooting
-
 ### ImagePullBackOff
 ```bash
 # Check image exists in Docker Hub
 docker pull your-username/animal-predict:tag
 
 # Verify secret if using private registry
-kubectl get secret regcred -n animal-predict -o yaml
+kubectl get secret regcred -n animal-app-namespace -o yaml
 ```
 
 ### Pods not starting
 ```bash
 # View logs
-kubectl logs POD_NAME -n animal-predict
+kubectl logs POD_NAME -n animal-app-namespace
 
 # Check resource availability
 kubectl top nodes
 
 # Check if resource requests are too high
-kubectl describe pod POD_NAME -n animal-predict
+kubectl describe pod POD_NAME -n animal-app-namespace
 ```
 
 ### Service not accessible
 ```bash
 # Check service
-kubectl get svc -n animal-predict
+kubectl get svc -n animal-app-namespace
 
 # Test connectivity inside cluster
-kubectl run test-pod --image=nginx --rm -it --restart=Never -n animal-predict -- bash
+kubectl run test-pod --image=nginx --rm -it --restart=Never -n animal-app-namespace -- bash
 
 # Inside pod:
 curl http://animal-predict-service:80
 ```
-
 ## Cleanup
 
 ```bash
 # Delete deployment
-kubectl delete deployment animal-predict -n animal-predict
+kubectl delete deployment animal-predict -n animal-app-namespace
 
 # Delete namespace (deletes all resources)
-kubectl delete namespace animal-predict
+kubectl delete namespace animal-app-namespace
 
 # Delete GKE cluster
 gcloud container clusters delete animal-predict-cluster --zone us-central1-a

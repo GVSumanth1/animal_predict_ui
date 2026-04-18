@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: animal-predict
-  namespace: animal-predict
+  namespace: animal-app-namespace
   labels:
     app: animal-predict
 spec:
