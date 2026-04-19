@@ -1,5 +1,4 @@
 name: Deploy to GKE
-
 on:
   workflow_run:
     workflows: ["Build and Push to Docker Hub"]
@@ -23,27 +22,26 @@ env:
   DEPLOYMENT_NAME: animal-predict
   IMAGE: ${{ secrets.DOCKER_USERNAME }}/animal-predict
   REGISTRY: docker.io
-
 jobs:
   setup-build-deploy:
     if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
-
+    
     permissions:
       contents: read
       id-token: write
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-      - name: Set up Cloud SDK
-        uses: google-github-actions/setup-gcloud@v1
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
         with:
-          service_account_key: ${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}
-          project_id: ${{ secrets.GCP_PROJECT_ID }}
-          export_default_credentials: true
-        - name: Set gcloud active account
-        run: |
-          gcloud config set account "$(gcloud auth list --filter=status:ACTIVE --format='value(account)')"
+          credentials_json: ${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}
+
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+
       - name: Configure Docker for GCR
         run: |
           gcloud auth configure-docker
