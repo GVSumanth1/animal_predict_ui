@@ -64,7 +64,7 @@ jobs:
           sed -i "s|DOCKER_IMAGE|${{ steps.image-tag.outputs.full_image }}|g" k8s/deployment.yaml
           
           # Apply Kubernetes manifests
-          kubectl apply -f k8s/namespace.yaml
+          # kubectl apply -f k8s/namespace.yaml
           kubectl apply -f k8s/configmap.yaml
           
           # Update secrets from GitHub Actions secrets
