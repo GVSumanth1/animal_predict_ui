@@ -22,18 +22,6 @@ env:
   DEPLOYMENT_NAME: animal-predict-ui-deployment
   IMAGE: ${{ secrets.DOCKER_USERNAME }}/animal-predict
   REGISTRY: docker.io
-
-
-    
-        
-          
-    
-
-        
-        Expand All
-    
-    @@ -47,7 +47,6 @@ jobs:
-  
 jobs:
   setup-build-deploy:
     if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
@@ -55,18 +43,6 @@ jobs:
           project_id: ${{ secrets.GCP_PROJECT_ID }}
           install_components: 'gke-gcloud-auth-plugin'
           export_default_credentials: true
-
-
-    
-          
-            
-    
-
-          
-          Expand Down
-    
-    
-  
       - name: Configure Docker for GCR
         run: |
           gcloud auth configure-docker
