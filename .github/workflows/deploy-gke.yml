@@ -19,9 +19,21 @@ on:
 env:
   GKE_CLUSTER: ${{ secrets.GKE_CLUSTER_NAME }}
   GKE_ZONE: ${{ secrets.GKE_ZONE }}
-  DEPLOYMENT_NAME: animal-predict
+  DEPLOYMENT_NAME: animal-predict-ui-deployment
   IMAGE: ${{ secrets.DOCKER_USERNAME }}/animal-predict
   REGISTRY: docker.io
+
+
+    
+        
+          
+    
+
+        
+        Expand All
+    
+    @@ -47,7 +47,6 @@ jobs:
+  
 jobs:
   setup-build-deploy:
     if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
@@ -33,18 +45,32 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-
       - name: Authenticate to Google Cloud
         uses: google-github-actions/auth@v2
         with:
           credentials_json: ${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}
-
       - name: Set up Cloud SDK
         uses: google-github-actions/setup-gcloud@v2
+        with:
+          project_id: ${{ secrets.GCP_PROJECT_ID }}
+          install_components: 'gke-gcloud-auth-plugin'
+          export_default_credentials: true
 
+
+    
+          
+            
+    
+
+          
+          Expand Down
+    
+    
+  
       - name: Configure Docker for GCR
         run: |
           gcloud auth configure-docker
+          
       - name: Get GKE credentials
         run: |
           gcloud container clusters get-credentials $GKE_CLUSTER --region $GKE_ZONE
@@ -58,19 +84,6 @@ jobs:
           fi
           echo "tag=$TAG" >> $GITHUB_OUTPUT
           echo "full_image=${{ env.IMAGE }}:$TAG" >> $GITHUB_OUTPUT
-      - name: Install gke-gcloud-auth-plugin
-        run: |
-          ARCH=$(uname -m)
-          case "$ARCH" in
-            x86_64) ARCH=amd64 ;;
-            aarch64 | arm64) ARCH=arm64 ;;
-            *) echo "Unsupported architecture $ARCH"; exit 1 ;;
-          esac
-          if ! command -v gke-gcloud-auth-plugin &> /dev/null; then
-            curl -LO "https://storage.googleapis.com/artifacts.k8s.io/binaries/kubectl-plugins/gke-gcloud-auth-plugin/$(uname | tr '[:upper:]' '[:lower:]')/$ARCH/gke-gcloud-auth-plugin"
-            chmod +x gke-gcloud-auth-plugin
-            sudo mv gke-gcloud-auth-plugin /usr/local/bin/
-          fi
       - name: Deploy to GKE
         run: |
           # Replace image tag in deployment manifest
