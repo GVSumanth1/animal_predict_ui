@@ -58,6 +58,13 @@ jobs:
           fi
           echo "tag=$TAG" >> $GITHUB_OUTPUT
           echo "full_image=${{ env.IMAGE }}:$TAG" >> $GITHUB_OUTPUT
+        - name: Install gke-gcloud-auth-plugin
+        run: |
+          if ! command -v gke-gcloud-auth-plugin &> /dev/null; then
+            curl -LO "https://storage.googleapis.com/artifacts.k8s.io/binaries/kubectl-plugins/gke-gcloud-auth-plugin/$(uname | tr '[:upper:]' '[:lower:]')/amd64/gke-gcloud-auth-plugin"
+            chmod +x gke-gcloud-auth-plugin
+            sudo mv gke-gcloud-auth-plugin /usr/local/bin/
+          fi
       - name: Deploy to GKE
         run: |
           # Replace image tag in deployment manifest
