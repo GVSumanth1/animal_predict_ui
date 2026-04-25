@@ -65,7 +65,7 @@ export async function POST(request: NextRequest) {
 
         return NextResponse.json(response.data)
     } catch (error: any) {
-        console.error('❌ Prediction error')
+        console.error('Prediction error', error)
         return NextResponse.json(
             { error: 'Failed to process image' },
             { status: 500 }
