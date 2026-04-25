@@ -1,22 +1,35 @@
 'use client'
+
 interface PredictionResultProps {
     prediction: any
 }
 
 export default function PredictionResult({ prediction }: PredictionResultProps) {
     const mainConfidence = prediction.top?.[0]?.[1] || 0
+    const animalMessage =
+        typeof prediction?.animal === 'string' ? prediction.animal : ''
+    const isValidationWarning =
+        !prediction?.description &&
+        animalMessage.toLowerCase().includes('valid animal image')
 
     return (
         <div className="result-container">
             <div className="result-card">
-                <h2>🎯 Prediction Result</h2>
-                {prediction.animal && (
+                <h2> Prediction Result</h2>
+
+                {prediction.animal && !isValidationWarning && (
                     <div className="result-item">
                         <strong>Animal:</strong> {prediction.animal}
                     </div>
                 )}
 
-                {mainConfidence > 0 && (
+                {isValidationWarning && (
+                    <div className="result-item result-warning">
+                        <strong>Notice:</strong> {animalMessage}
+                    </div>
+                )}
+
+                {mainConfidence > 0 && !isValidationWarning && (
                     <div className="result-item">
                         <strong>Confidence:</strong> {(mainConfidence * 100).toFixed(2)}%
                         <div className="confidence-bar">
@@ -34,7 +47,7 @@ export default function PredictionResult({ prediction }: PredictionResultProps) 
                     </div>
                 )}
 
-                {prediction.top && prediction.top.length > 0 && (
+                {prediction.top && prediction.top.length > 0 && !isValidationWarning && (
                     <div className="result-item">
                         <strong>Top Predictions:</strong>
                         <ul className="predictions-list">

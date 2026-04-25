@@ -184,6 +184,11 @@ main.container {
     font-weight: 600;
 }
 
+.result-warning {
+    background: rgba(255, 255, 255, 0.18);
+    border-left: 4px solid #ffe08a;
+}
+
 .confidence-bar {
     width: 100%;
     height: 8px;
@@ -279,6 +284,16 @@ main.container {
     justify-content: center;
     align-items: center;
 }
+
+.uploaded-image {
+    width: 280px;
+    height: 280px;
+    object-fit: cover;
+    border-radius: 10px;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+}
+
+
 @keyframes pulse {
 
     0%,
