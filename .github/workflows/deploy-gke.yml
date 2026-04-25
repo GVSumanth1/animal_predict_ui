@@ -63,7 +63,7 @@ jobs:
       - name: Deploy to GKE
         run: |
           # Replace image tag in deployment manifest
-          sed -i "s|DOCKER_IMAGE|${{ steps.image-tag.outputs.full_image }}|g" k8s/deployment.yaml
+          sed -i "s|DOCKER_IMAGE|${{ env.IMAGE }}|g" k8s/deployment.yaml
           
           # Apply Kubernetes manifests
           # kubectl apply -f k8s/namespace.yaml
@@ -94,5 +94,5 @@ jobs:
           echo "✅ Deployment successful"
           echo "Cluster: $GKE_CLUSTER"
           echo "Zone: $GKE_ZONE"
-          echo "Image: ${{ steps.image-tag.outputs.full_image }}"
+          echo "Image: ${{ env.IMAGE }}"
           echo "Namespace: animal-app-namespace"
