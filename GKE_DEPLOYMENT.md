@@ -8,13 +8,14 @@ This guide covers deploying the Animal Predict application to Google Kubernetes 
 .github/workflows/
 ├── docker-build.yml      # CI pipeline: test, build, push to Docker Hub
 └── deploy-gke.yml        # Deployment pipeline: deploy to GKE
+
 k8s/
-├── namespace.yaml        # Kubernetes namespace
 ├── configmap.yaml        # Environment configuration
 ├── secret.yaml           # Secret credentials
 ├── deployment.yaml       # Main application deployment
 ├── service.yaml          # Load balancer service
 └── hpa.yaml              # Horizontal Pod Autoscaler
+
 jest.config.js            # Jest testing configuration
 jest.setup.js             # Jest setup file
 __tests__/                # Unit tests directory
@@ -103,17 +104,16 @@ Triggers on: `push` to main/develop, `pull_request`, manual `workflow_dispatch`
      - Semantic version tags
 
 ### deploy-gke.yml (Deployment Pipeline)
-Triggers on: `push` to main, `tags` (v*.*.*), manual `workflow_dispatch`
+Triggers on: successful `workflow_run` of the build pipeline, manual `workflow_dispatch`
 
 **Steps:**
 1. Authenticates with GCP
 2. Gets GKE cluster credentials
 3. Deploys Kubernetes manifests in order:
-   - Namespace
-   - ConfigMap
-   - Secret
-   - Deployment
-   - Service
+  - ConfigMap
+  - Secret
+  - Deployment
+  - Service
 4. Waits for rollout completion
 5. Verifies deployment health
 
@@ -137,8 +137,8 @@ npm run test:coverage
 
 ### Using kubectl
 ```bash
-# Create namespace
-kubectl apply -f k8s/namespace.yaml
+# Create namespace (if not already created)
+kubectl create namespace animal-app-namespace
 
 # Create secrets (update values first)
 kubectl apply -f k8s/secret.yaml
@@ -165,7 +165,7 @@ sed "s|DOCKER_IMAGE|$IMAGE_TAG|g" k8s/deployment.yaml | kubectl apply -f -
 ## Kubernetes Configuration Details
 
 ### Deployment
-- **Replicas**: 3 (for high availability)
+- **Replicas**: 1 (default)
 - **Strategy**: RollingUpdate (1 surge, 0 unavailable)
 - **Resources**:
   - Request: 250m CPU, 512Mi memory
@@ -176,8 +176,8 @@ sed "s|DOCKER_IMAGE|$IMAGE_TAG|g" k8s/deployment.yaml | kubectl apply -f -
 - **Security**: Runs as non-root user (1000), read-only filesystem
 
 ### Horizontal Pod Autoscaler (HPA)
-- **Min replicas**: 3
-- **Max replicas**: 10
+- **Min replicas**: 1
+- **Max replicas**: 2
 - **Triggers**:
   - CPU > 70% → scale up
   - Memory > 80% → scale up
@@ -214,13 +214,13 @@ NODE_ENV=production
 
 ```bash
 # Watch deployment status
-kubectl rollout status deployment/animal-predict -n animal-app-namespace --watch
+kubectl rollout status deployment/animal-predict-ui-deployment -n animal-app-namespace --watch
 
 # View pod logs
-kubectl logs deployment/animal-predict -n animal-app-namespace
+kubectl logs deployment/animal-predict-ui-deployment -n animal-app-namespace
 
 # Follow logs in real-time
-kubectl logs -f deployment/animal-predict -n animal-app-namespace
+kubectl logs -f deployment/animal-predict-ui-deployment -n animal-app-namespace
 
 # View resource usage
 kubectl top pods -n animal-app-namespace
@@ -233,7 +233,7 @@ kubectl describe pod animal-predict-xxxxx -n animal-app-namespace
 
 ```bash
 # Manual scaling
-kubectl scale deployment animal-predict --replicas=5 -n animal-app-namespace
+kubectl scale deployment animal-predict-ui-deployment --replicas=2 -n animal-app-namespace
 
 # View HPA status
 kubectl get hpa -n animal-app-namespace -w
@@ -243,6 +243,7 @@ kubectl describe hpa animal-predict-hpa -n animal-app-namespace
 ```
 
 ## Troubleshooting
+
 ### ImagePullBackOff
 ```bash
 # Check image exists in Docker Hub
@@ -275,11 +276,12 @@ kubectl run test-pod --image=nginx --rm -it --restart=Never -n animal-app-namesp
 # Inside pod:
 curl http://animal-predict-service:80
 ```
+
 ## Cleanup
 
 ```bash
 # Delete deployment
-kubectl delete deployment animal-predict -n animal-app-namespace
+kubectl delete deployment animal-predict-ui-deployment -n animal-app-namespace
 
 # Delete namespace (deletes all resources)
 kubectl delete namespace animal-app-namespace

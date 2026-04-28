@@ -14,21 +14,17 @@
 ### Docker & Image Building
 - ✅ `.dockerignore` - Excludes unnecessary files
 - ✅ Dockerfile - Multi-stage build (already optimized)
-- ✅ Environment templates:
-  - `.env.example` - Development template
-  - `.env.production.example` - Production template
 
 ### CI/CD Workflows
 - ✅ **docker-build.yml** - Tests, lints, builds & pushes Docker image
 - ✅ **deploy-gke.yml** - Deploys to GKE cluster
 
 ### Kubernetes Configuration
-- ✅ `k8s/namespace.yaml` - Kubernetes namespace
 - ✅ `k8s/configmap.yaml` - Environment config
 - ✅ `k8s/secret.yaml` - Secret management
-- ✅ `k8s/deployment.yaml` - Pod deployment (3 replicas)
+- ✅ `k8s/deployment.yaml` - Pod deployment (1 replica)
 - ✅ `k8s/service.yaml` - LoadBalancer service (exposes port 80)
-- ✅ `k8s/hpa.yaml` - Auto-scaling (3-10 replicas)
+- ✅ `k8s/hpa.yaml` - Auto-scaling (1-2 replicas)
 
 ### Documentation
 - ✅ `GKE_DEPLOYMENT.md` - Complete deployment guide
@@ -89,19 +85,22 @@ Push to `main` branch → Automatic CI/CD pipeline:
 .github/workflows/
 ├── docker-build.yml      → CI: Test → Build → Push
 └── deploy-gke.yml        → CD: Deploy to GKE
+
 k8s/                      → Kubernetes manifests
-├── namespace.yaml
 ├── configmap.yaml
 ├── secret.yaml
-├── deployment.yaml       → 3 replicas, health checks
+├── deployment.yaml       → 1 replica, health checks
 ├── service.yaml          → LoadBalancer on port 80
-└── hpa.yaml              → Auto-scale 3-10 replicas
+└── hpa.yaml              → Auto-scale 1-2 replicas
+
 __tests__/                → Unit tests
 ├── ImageUploader.test.tsx
 ├── PredictionResult.test.tsx
 └── utils.test.ts
+
 jest.config.js            → Jest configuration
 jest.setup.js             → Jest setup
+
 .dockerignore             → Docker build exclusions
 .env.example              → Dev env template
 .env.production.example   → Prod env template
@@ -164,7 +163,7 @@ GKE_DEPLOYMENT.md         → Full deployment guide
 6. **Monitor deployment**:
    ```bash
    gcloud container clusters get-credentials animal-predict-cluster --zone us-central1-a
-   kubectl rollout status deployment/animal-predict -n animal-app-namespace --watch
+   kubectl rollout status deployment/animal-predict-ui-deployment -n animal-app-namespace --watch
    ```
 
 ---
@@ -177,14 +176,14 @@ GKE_DEPLOYMENT.md         → Full deployment guide
 - Size optimized: Multi-stage build
 
 ### Kubernetes Deployment
-- Replicas: 3 (minimum, scales to 10)
+- Replicas: 1 (minimum, scales to 2)
 - CPU: 250m request, 500m limit
 - Memory: 512Mi request, 1Gi limit
 - Service: LoadBalancer (external port 80 → container port 3000)
 
 ### Auto-Scaling
-- Min: 3 pods
-- Max: 10 pods
+- Min: 1 pod
+- Max: 2 pods
 - Triggers: CPU >70%, Memory >80%
 - Scale-up: Immediate
 - Scale-down: After 5 minutes stable
