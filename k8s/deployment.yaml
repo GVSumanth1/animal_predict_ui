@@ -28,7 +28,7 @@ spec:
       containers:
       - name: animal-predict
         image: DOCKER_IMAGE
-        imagePullPolicy: IfNotPresent
+        imagePullPolicy: Always
 
         ports:
         - containerPort: 3000
